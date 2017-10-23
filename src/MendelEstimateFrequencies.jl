@@ -182,7 +182,8 @@ function prior_estimate_frequencies(person::Person, locus::Locus,
     loc = locus.model_locus[l]
     allele = multi_genotype[1, l]
     frequency = par[allele]
-    prior_prob = prior_prob * frequency
+    
+    prior_prob = prior_prob * frequency 
     if !locus.xlinked[loc] || !person.male[i]
       allele = multi_genotype[2, l]
       frequency = par[allele]
