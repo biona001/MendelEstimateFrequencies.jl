@@ -16,7 +16,9 @@ using Distributions
     (pedigree, person, nuclear_family, locus, snpdata,
     locus_frame, phenotype_frame, pedigree_frame, snp_definition_frame) =
     read_external_data_files(keyword)
-    multi_genotype = [1 0; 2 0]
+    multi_genotype = zeros(Int, 2, 1) #need an Array{Int64,2} element
+    multi_genotype[1] = 1
+    multi_genotype[2] = 1
     par = [0.3, 0.7]
     start = 1
     finish = 1
@@ -123,8 +125,8 @@ end
 
     # !locus.xlinked is true, !person.male is false
     multi_genotype = zeros(Int, 2, 1)
-    multi_genotype[1] = 1
-    multi_genotype[2] = 2
+    multi_genotype[1] = 1 #just picking [1, 2] for no particular reason
+    multi_genotype[2] = 2 #since enumerating all of them is tedious/pointless
     par = [0.3, 0.7]
     start = 1
     finish = 1
@@ -159,7 +161,10 @@ end
     locus_frame, phenotype_frame, pedigree_frame, snp_definition_frame) =
     read_external_data_files(keyword)
 
-    multi_genotype = [2 0; 1 0]
+
+    multi_genotype = zeros(Int, 2, 1)
+    multi_genotype[1] = 2 #just picking [2, 1] for no particular reason
+    multi_genotype[2] = 1 #since enumerating all of them is tedious/pointless
     par = [0.2, 0.8]
     start = 1
     finish = 1
@@ -241,6 +246,40 @@ end
     @test typeof(parameter.name) <: Array{AbstractString}
     @test parameter.par[1] == 0.6811
     @test parameter.par[2] == 0.3189
-    
 end
 
+#
+# the following wrapper test depends on elston-stewart functions
+# and Search being correct. The elston-stewarts functions still lack 
+# unit testing and Search is minimally tested. 
+#
+@testset "estimate_frequencies_option" begin
+    keyword = set_keyword_defaults!(Dict{AbstractString, Any}())
+    process_keywords!(keyword, "estimate frequencies 1 Control.txt", "")
+    (pedigree, person, nuclear_family, locus, snpdata,
+    locus_frame, phenotype_frame, pedigree_frame, snp_definition_frame) =
+    read_external_data_files(keyword)
+    result1 = MendelEstimateFrequencies.estimate_frequencies_option(pedigree, 
+        person, nuclear_family, locus, locus_frame, phenotype_frame, 
+        pedigree_frame, keyword)
+
+    keyword = set_keyword_defaults!(Dict{AbstractString, Any}())
+    process_keywords!(keyword, "estimate frequencies 2 Control.txt", "")
+    (pedigree, person, nuclear_family, locus, snpdata,
+    locus_frame, phenotype_frame, pedigree_frame, snp_definition_frame) =
+    read_external_data_files(keyword)
+    result2 = MendelEstimateFrequencies.estimate_frequencies_option(pedigree, 
+        person, nuclear_family, locus, locus_frame, phenotype_frame, 
+        pedigree_frame, keyword)
+
+    @test result1 == 0
+    @test result2 == 0
+end
+
+@testset "Wrapper: EstimateFrequencies" begin
+    result1 = EstimateFrequencies("estimate frequencies 1 Control.txt")
+    result2 = EstimateFrequencies("estimate frequencies 2 Control.txt")
+
+    @test result1 == nothing #evaluating to nothing implies no errors
+    @test result2 == nothing
+end
