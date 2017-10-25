@@ -11,11 +11,107 @@ using Distributions
 #
 
 @testset "penetrance_estimate_frequencies" begin
+    keyword = set_keyword_defaults!(Dict{AbstractString, Any}())
+    process_keywords!(keyword, "estimate frequencies 1 Control.txt", "")
+    (pedigree, person, nuclear_family, locus, snpdata,
+    locus_frame, phenotype_frame, pedigree_frame, snp_definition_frame) =
+    read_external_data_files(keyword)
+    multi_genotype = [1 0; 2 0]
+    par = [0.3, 0.7]
+    start = 1
+    finish = 1
+    i = 1
 
+    result = MendelEstimateFrequencies.penetrance_estimate_frequencies(
+        person, locus, multi_genotype, par, keyword, start, finish, i)
+
+    @test typeof(result) == Float64
+    @test result == 1.0
 end
 
-@testset "transmission_estimate_frequencies" begin
 
+#
+#Supply the transmission probability that a parent i with a particular
+#genotype transmits a particular gamete to his or her child j.
+#
+@testset "transmission_estimate_frequencies" begin
+    keyword = set_keyword_defaults!(Dict{AbstractString, Any}())
+    process_keywords!(keyword, "estimate frequencies 2 Control.txt", "")
+    (pedigree, person, nuclear_family, locus, snpdata,
+    locus_frame, phenotype_frame, pedigree_frame, snp_definition_frame) =
+    read_external_data_files(keyword)
+    multi_genotype = zeros(Int, 2, 1) #need an Array{Int64,2} element
+    par = [0.3, 0.7]
+    start = 1
+    finish = 1
+    i = 1  #test sets do not have xlinked alleles so this doesn't matter
+    j = 4  
+
+    multi_genotype[1] = 1
+    multi_genotype[2] = 1
+    gamete = [1]
+    result = MendelEstimateFrequencies.transmission_estimate_frequencies(
+        person, locus, gamete, multi_genotype, par, keyword, start, 
+        finish, i, j)
+
+    @test result == 1.0
+    @test typeof(result) == Float64
+
+    multi_genotype[1] = 1
+    multi_genotype[2] = 1
+    gamete = [2]
+    result = MendelEstimateFrequencies.transmission_estimate_frequencies(
+        person, locus, gamete, multi_genotype, par, keyword, start, 
+        finish, i, j)
+    @test result == 0.0
+
+    multi_genotype[1] = 1
+    multi_genotype[2] = 2
+    gamete = [1]
+    result = MendelEstimateFrequencies.transmission_estimate_frequencies(
+        person, locus, gamete, multi_genotype, par, keyword, start, 
+        finish, i, j)
+    @test result == 0.5
+
+    multi_genotype[1] = 1
+    multi_genotype[2] = 2
+    gamete = [2]
+    result = MendelEstimateFrequencies.transmission_estimate_frequencies(
+        person, locus, gamete, multi_genotype, par, keyword, start, 
+        finish, i, j)
+    @test result == 0.5
+
+    multi_genotype[1] = 2
+    multi_genotype[2] = 1
+    gamete = [1]
+    result = MendelEstimateFrequencies.transmission_estimate_frequencies(
+        person, locus, gamete, multi_genotype, par, keyword, start, 
+        finish, i, j)
+    @test result == 0.5
+
+    multi_genotype[1] = 2
+    multi_genotype[2] = 1
+    gamete = [2]
+    result = MendelEstimateFrequencies.transmission_estimate_frequencies(
+        person, locus, gamete, multi_genotype, par, keyword, start, 
+        finish, i, j)
+    @test result == 0.5
+
+    multi_genotype[1] = 2
+    multi_genotype[2] = 2
+    gamete = [1]
+    result = MendelEstimateFrequencies.transmission_estimate_frequencies(
+        person, locus, gamete, multi_genotype, par, keyword, start, 
+        finish, i, j)
+    @test result == 0.0
+
+    multi_genotype[1] = 2
+    multi_genotype[2] = 2
+    gamete = [2]
+    result = MendelEstimateFrequencies.transmission_estimate_frequencies(
+        person, locus, gamete, multi_genotype, par, keyword, start, 
+        finish, i, j)
+    @test result == 1.0
 end
 
 @testset "prior_estimate_frequencies" begin
@@ -26,7 +122,9 @@ end
     read_external_data_files(keyword)
 
     # !locus.xlinked is true, !person.male is false
-    multi_genotype = [1 0; 2 0]
+    multi_genotype = zeros(Int, 2, 1)
+    multi_genotype[1] = 1
+    multi_genotype[2] = 2
     par = [0.3, 0.7]
     start = 1
     finish = 1
